@@ -13,4 +13,8 @@ minimap plugin written in pure Vim9 script using Vim 9.2's
 
 Requires Vim 9.2 or later with +image support.
 
+Note: By default, this plugin retrieves colors from `Pmenu` highlight group for
+the minimap. You may need to specify your own colors if that doesn't work well
+with your environment.
+
 See the [help doc](doc/minimap.txt) for more information and configuration options.
