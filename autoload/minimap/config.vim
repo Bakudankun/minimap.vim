@@ -27,10 +27,10 @@ export def Get(query: string): any
   if !initialized
     Init()
   endif
-  if exists('g:minimap_config.' .. query)
-    return eval('g:minimap_config.' .. query)
+  if !exists('g:minimap_config.' .. query)
+    Init()
   endif
-  return null
+  return eval('g:minimap_config.' .. query)
 enddef
 
 
