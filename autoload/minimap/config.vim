@@ -35,7 +35,7 @@ enddef
 
 
 export def GetColorConfig(kind: string): dict<blob>
-  var config: any = Get('colors.' .. kind)
+  var config: any = Get('colors.' .. kind)->copy()
   if type(config) != v:t_string && type(config) != v:t_dict
     throw $"Invalid configuration for {kind} color."
   endif
