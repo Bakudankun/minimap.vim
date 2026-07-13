@@ -91,27 +91,25 @@ export class Minimap
   def _new(parent: number)
     this.parent = parent
 
-    var color: any = config.Get('colors.base')
-    if type(color) == v:t_string
-      color = config.GetColor(color)
-    endif
-    if !(type(color) == v:t_dict && color->get('fg', '') =~ '^#\x\{8}$' && color->get('bg', '') =~ '^#\x\{8}$')
-      throw 'Invalid color configuration for colors.base'
-    endif
-    this.baseColor = color->mapnew((_, v) => eval('0z' .. v[1 :]))
-
-    color = config.Get('colors.window')
-    if type(color) == v:t_string && !!color
-      color = config.GetColor(color)
-    endif
-    if type(color) == v:t_dict && color->get('fg', '') =~ '^#\x\{8}$' && color->get('bg', '') =~ '^#\x\{8}$'
-      this.windowColor = color->mapnew((_, v) => eval('0z' .. v[1 :]))
+    this.baseColor = config.GetColorConfig('base')
+    if !config.Get('colors.window')->empty()
+      this.windowColor = config.GetColorConfig('window')
     endif
 
-    const frame: string = config.Get('colors.frame')
-    if frame =~ '^#\x\{8}$'
-      this.frameColor = eval('0z' .. frame[1 :])
+    var frame: string = config.Get('colors.frame')
+    if frame[0] != '#'
+      frame = v:colornames->get(frame->tolower(), frame)
+      if frame[0] != '#'
+        throw $"Unknown color name for frame: \"{frame}\"\nYou may need to specify the colors in hex format."
+      endif
     endif
+    if frame =~ '^#\x\{6}$'
+      frame ..= 'ff'
+    endif
+    if frame !~ '^#\x\{8}$'
+      throw $"Invalid frame color format: {frame}"
+    endif
+    this.frameColor = eval('0z' .. frame[1 :])
 
     this.pointHeight = config.Get('point_height')
     this.pointWidth = config.Get('point_width')
