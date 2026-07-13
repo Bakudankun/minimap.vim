@@ -293,10 +293,10 @@ export class Minimap
       const added = change.added
 
       if added > 0
-        const startIdx = this.width * (change.end - 1) * lineHeight * NUM_CHANNELS
+        const startIdx = this.width * (change.lnum - 1) * lineHeight * NUM_CHANNELS
         const addition = this.width * lineHeight * added
-        this.canvas = this.canvas[: startIdx - 1] + repeat(this.baseColor.bg, addition) + this.canvas[startIdx :]
-        this._DrawBufLines(change.end - 1, change.end + added - 1, true)
+        this.canvas = this.canvas->slice(0, startIdx) + repeat(this.baseColor.bg, addition) + this.canvas->slice(startIdx)
+        this._DrawBufLines(change.lnum, change.lnum + added - 1, true)
       elseif added < 0
         const startIdx = this.width * (change.lnum - 1) * lineHeight * NUM_CHANNELS
         remove(this.canvas, startIdx, startIdx + this.width * lineHeight * (- added) * NUM_CHANNELS - 1)
