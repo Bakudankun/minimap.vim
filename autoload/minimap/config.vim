@@ -8,7 +8,7 @@ final defaultConfig = {
   colors: {
     base: 'Pmenu',
     window: '',
-    frame: '#ff0000ff',
+    frame: '#ff0000',
   },
   point_height: 1,
   point_width: 1,

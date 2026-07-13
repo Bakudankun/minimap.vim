@@ -74,14 +74,14 @@ hide_time		number (default: 1000)
 					*g:minimap_config.colors*
 colors			dict
 			Dictionary of colors for minimap. Each "color code"
-			should be "#rrggbbaa" string that represents color
-			code with alpha channel.
+			can be string of "#rrggbb", "#rrggbbaa" or color's
+			name from |v:colornames|.
 		    base	string or dict<string> (default: "Pmenu")
 				If it's a string, colors from that highlight
 				group will be used to draw minimap.
 				If it's a dictionary, it should have color
 				codes for "bg" and "fg". Example: >
-				{'bg': '#333333ff', 'fg': '#ccccccff'}
+				{'bg': '#333333', 'fg': '#cccccc'}
 <
 		    window	string or dict<string> (default: "")
 				If it's a string, colors from that highlight
@@ -89,11 +89,11 @@ colors			dict
 				area of minimap.
 				If it's a dictionary, it should have color
 				codes for "bg" and "fg". Example: >
-				{'bg': '#333333ff', 'fg': '#ccccccff'}
+				{'bg': '#333333', 'fg': '#cccccc'}
 <				If it is an empty string (default), this
 				feature is disabled.
 
-		    frame	string (default: "#ff0000ff")
+		    frame	string (default: "#ff0000")
 				Color code for the frame to indicate the
 				visible area of minimap. If it's invalid, this
 				feature is disabled.
