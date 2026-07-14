@@ -78,7 +78,7 @@ export class Canvas
 
   def InsertZero(pos: number, lineCount: number)
     const lineSize = this.GetLineSize()
-    InsertLines(pos, repeat(0z00, lineSize * lineCount)
+    InsertLines(pos, repeat(0z00, lineSize * lineCount))
   enddef
 
   def RemoveLines(start: number, end: number): blob
