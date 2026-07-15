@@ -27,4 +27,20 @@ export def DoAutocmd(event: string)
   endif
 enddef
 
+
+var win_call_ret: any
+var WinCallFunc: func
+
+# Call a function in the specified window.
+# Returns its result.
+export def WinCall(winid: number, Func: func): any
+  if winid == win_getid()
+    return Func()
+  endif
+  WinCallFunc = Func
+  win_execute(winid, 'win_call_ret = WinCallFunc()')
+  return win_call_ret
+enddef
+
+
 # vim: et sw=2 sts=-1 cc=+1

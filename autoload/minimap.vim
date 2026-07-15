@@ -15,6 +15,7 @@ export class Minimap
   const baseColor: dict<blob>
   const windowColor: dict<blob>
   const frameColor: blob
+  const foldColor: dict<blob>
   const pointHeight: number
   const pointWidth: number
   const lineSpace: number
@@ -98,6 +99,9 @@ export class Minimap
     if !config.Get('colors.window')->empty()
       this.windowColor = config.GetColorConfig('window')
     endif
+    if !config.Get('colors.fold')->empty()
+      this.foldColor = config.GetColorConfig('fold')
+    endif
 
     var frame: string = config.Get('colors.frame')
     if frame[0] != '#'
@@ -158,9 +162,17 @@ export class Minimap
     _refImg = this.canvas->slice(cropInfo.start * lineSize, cropInfo.end * lineSize)
     _drawingImg = copy(_refImg)
 
-    this._HighlightWindow()
+    if !!this.windowColor
+      this._HighlightWindow()
+    endif
+    if !!this.foldColor
+      this._HighlightFolds()
+    endif
+    if !!this.frameColor && this.frameWidth > 0
+      this._HighlightFrame()
+    endif
 
-    const height = len(_drawingImg) / this.width / NUM_CHANNELS
+    const height = len(_drawingImg) / lineSize
 
     g:minimap_draw_info = {
       minimap: this,
@@ -282,6 +294,10 @@ export class Minimap
       ret.start = min([max([midline - winHeight / 2, 0]), this.height - winHeight])
       ret.end = ret.start + winHeight
     endif
+
+    ret.topline = ret.start / lineHeight + 1
+    ret.botline = ret.end / lineHeight + (ret.end % lineHeight == 0 ? 0 : 1)
+
     return ret
   enddef
 
@@ -340,21 +356,38 @@ export class Minimap
   def _HighlightWindow()
     const cropInfo = _currentCropInfo
     const wininfo: dict<any> = cropInfo.wininfo
-    if !!this.windowColor
-      this.HighlightLines(wininfo.topline, wininfo.botline, this.windowColor)
-    endif
-    if !!this.frameColor && this.frameWidth > 0
-      const lineHeight: number = this.pointHeight + this.lineSpace
-      const winStart: number = max([(wininfo.topline - 1) * lineHeight - cropInfo.start, 0])
-      const winEnd: number = min([wininfo.botline * lineHeight - cropInfo.start, cropInfo.winHeight])
-      const topleft = (0, winStart)
-      const botright = (this.width - 1, winEnd - 1)
-      const width = this.frameWidth - 1
-      this._DrawRect(_drawingImg, topleft, (botright[0], topleft[1] + width), this.frameColor)
-      this._DrawRect(_drawingImg, topleft, (topleft[0] + width, botright[1]), this.frameColor)
-      this._DrawRect(_drawingImg, (botright[0] - width, topleft[1]), botright, this.frameColor)
-      this._DrawRect(_drawingImg, (topleft[0], botright[1] - width), botright, this.frameColor)
-    endif
+    this.HighlightLines(wininfo.topline, wininfo.botline, this.windowColor)
+  enddef
+
+  def _HighlightFolds()
+    const cropInfo = _currentCropInfo
+    const wininfo: dict<any> = cropInfo.wininfo
+    var lnum: number = cropInfo.topline
+    while lnum <= cropInfo.botline
+      const foldStart: number = util.WinCall(wininfo.winid, function('foldclosed', [lnum]))
+      if foldStart != -1
+        const foldEnd = util.WinCall(wininfo.winid, function('foldclosedend', [lnum]))
+        this.HighlightLines(foldStart, foldEnd, this.foldColor)
+        lnum = foldEnd + 1
+      else
+        lnum += 1
+      endif
+    endwhile
+  enddef
+
+  def _HighlightFrame()
+    const cropInfo = _currentCropInfo
+    const wininfo: dict<any> = cropInfo.wininfo
+    const lineHeight: number = this.pointHeight + this.lineSpace
+    const winStart: number = max([(wininfo.topline - 1) * lineHeight - cropInfo.start, 0])
+    const winEnd: number = min([wininfo.botline * lineHeight - cropInfo.start, cropInfo.winHeight])
+    const topleft = (0, winStart)
+    const botright = (this.width - 1, winEnd - 1)
+    const width = this.frameWidth - 1
+    this._DrawRect(_drawingImg, topleft, (botright[0], topleft[1] + width), this.frameColor)
+    this._DrawRect(_drawingImg, topleft, (topleft[0] + width, botright[1]), this.frameColor)
+    this._DrawRect(_drawingImg, (botright[0] - width, topleft[1]), botright, this.frameColor)
+    this._DrawRect(_drawingImg, (topleft[0], botright[1] - width), botright, this.frameColor)
   enddef
 
   def _Delete()

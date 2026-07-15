@@ -9,6 +9,7 @@ final defaultConfig = {
     base: 'Pmenu',
     window: '',
     frame: '#ff0000',
+    fold: '',
   },
   point_height: 1,
   point_width: 1,
