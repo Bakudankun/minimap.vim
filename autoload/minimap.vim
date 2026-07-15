@@ -22,6 +22,7 @@ export class Minimap
   static const NUM_CHANNELS = 4
   static var _drawingImg: blob
   static var _refImg: blob
+  static var _currentCropInfo: dict<any>
 
   static def Open(parent: number): Minimap
     var minimap: Minimap = getwinvar(win_getid(), 'minimap', null_object)
@@ -153,9 +154,12 @@ export class Minimap
     const pos = this._DesiredPos()
     const cropInfo = this._CalcCropInfo()
     const lineSize = this.width * NUM_CHANNELS
+    _currentCropInfo = cropInfo
     _refImg = this.canvas->slice(cropInfo.start * lineSize, cropInfo.end * lineSize)
     _drawingImg = copy(_refImg)
-    this._HighlightWindow(cropInfo.winstart, cropInfo.winend)
+
+    this._HighlightWindow()
+
     const height = len(_drawingImg) / this.width / NUM_CHANNELS
 
     g:minimap_draw_info = {
@@ -258,23 +262,26 @@ export class Minimap
     endfor
   enddef
 
-  def _CalcCropInfo(): dict<number>
-    const info = getwininfo(this.parent)[0]
+  def _CalcCropInfo(): dict<any>
+    const wininfo = getwininfo(this.parent)[0]
     const cellPixels = GetCellPixels()
-    const winHeight = cellPixels[1] * info.height
+    const winHeight = cellPixels[1] * wininfo.height
     const lineSize = this.width * NUM_CHANNELS
     const lineHeight: number = this.pointHeight + this.lineSpace
-    final ret: dict<number> = {}
+
+    final ret: dict<any> = {
+        wininfo: wininfo,
+        winHeight: winHeight,
+    }
+
     if this.height <= winHeight
       ret.start = 0
       ret.end = len(this.canvas) / lineSize
     else
-      const midline = (info.topline - 1 + info.botline) * lineHeight / 2
+      const midline = (wininfo.topline - 1 + wininfo.botline) * lineHeight / 2
       ret.start = min([max([midline - winHeight / 2, 0]), this.height - winHeight])
       ret.end = ret.start + winHeight
     endif
-    ret.winstart = max([(info.topline - 1) * lineHeight - ret.start, 0])
-    ret.winend = min([info.botline * lineHeight - ret.start, winHeight])
     return ret
   enddef
 
@@ -311,9 +318,16 @@ export class Minimap
   enddef
 
   def HighlightLines(start: number, end: number, color: dict<blob>)
+    const cropInfo = _currentCropInfo
+    const lineHeight: number = this.pointHeight + this.lineSpace
     const lineSize = this.width * NUM_CHANNELS
-    const startIdx = start * lineSize
-    const endIdx = end * lineSize
+    const startIdx: number = max([(start - 1) * lineHeight - cropInfo.start, 0]) * lineSize
+    const endIdx: number = min([end * lineHeight - cropInfo.start, cropInfo.winHeight]) * lineSize
+
+    if startIdx >= len(_drawingImg) || endIdx <= 0
+      return
+    endif
+
     for i in range(startIdx, min([endIdx - NUM_CHANNELS, len(_drawingImg) - NUM_CHANNELS]), NUM_CHANNELS)
       if _refImg->slice(i, i + NUM_CHANNELS) == this.baseColor.fg
         _drawingImg[i : i + NUM_CHANNELS - 1] = color.fg
@@ -323,11 +337,16 @@ export class Minimap
     endfor
   enddef
 
-  def _HighlightWindow(winStart: number, winEnd: number)
+  def _HighlightWindow()
+    const cropInfo = _currentCropInfo
+    const wininfo: dict<any> = cropInfo.wininfo
     if !!this.windowColor
-      this.HighlightLines(winStart, winEnd, this.windowColor)
+      this.HighlightLines(wininfo.topline, wininfo.botline, this.windowColor)
     endif
     if !!this.frameColor && this.frameWidth > 0
+      const lineHeight: number = this.pointHeight + this.lineSpace
+      const winStart: number = max([(wininfo.topline - 1) * lineHeight - cropInfo.start, 0])
+      const winEnd: number = min([wininfo.botline * lineHeight - cropInfo.start, cropInfo.winHeight])
       const topleft = (0, winStart)
       const botright = (this.width - 1, winEnd - 1)
       const width = this.frameWidth - 1
