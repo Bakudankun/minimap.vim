@@ -20,6 +20,8 @@ export class Minimap
   const lineSpace: number
   const frameWidth: number
   static const NUM_CHANNELS = 4
+  static var _drawingImg: blob
+  static var _refImg: blob
 
   static def Open(parent: number): Minimap
     var minimap: Minimap = getwinvar(win_getid(), 'minimap', null_object)
@@ -150,15 +152,17 @@ export class Minimap
 
     const pos = this._DesiredPos()
     const cropInfo = this._CalcCropInfo()
-    final data = this.canvas->slice(cropInfo.start, cropInfo.end)
-    this._HighlightWindow(data, cropInfo.winstart, cropInfo.winend)
-    const height = len(data) / this.width / NUM_CHANNELS
+    const lineSize = this.width * NUM_CHANNELS
+    _refImg = this.canvas->slice(cropInfo.start * lineSize, cropInfo.end * lineSize)
+    _drawingImg = copy(_refImg)
+    this._HighlightWindow(cropInfo.winstart, cropInfo.winend)
+    const height = len(_drawingImg) / this.width / NUM_CHANNELS
 
     g:minimap_draw_info = {
       minimap: this,
       height: height,
       num_channels: NUM_CHANNELS,
-      img: data,
+      img: _drawingImg,
     }
     util.DoAutocmd('Draw')
     unlet g:minimap_draw_info
@@ -167,7 +171,7 @@ export class Minimap
       line: pos[0],
       col: pos[1],
       image: {
-        data: data,
+        data: _drawingImg,
         width: this.width,
         height: height,
       }})
@@ -263,16 +267,14 @@ export class Minimap
     final ret: dict<number> = {}
     if this.height <= winHeight
       ret.start = 0
-      ret.end = len(this.canvas)
+      ret.end = len(this.canvas) / lineSize
     else
       const midline = (info.topline - 1 + info.botline) * lineHeight / 2
-      const topline = min([max([midline - winHeight / 2, 0]), this.height - winHeight])
-      const botline = topline + winHeight
-      ret.start = topline * lineSize
-      ret.end = botline * lineSize
+      ret.start = min([max([midline - winHeight / 2, 0]), this.height - winHeight])
+      ret.end = ret.start + winHeight
     endif
-    ret.winstart = max([(info.topline - 1) * lineSize * lineHeight - ret.start, 0])
-    ret.winend = min([info.botline * lineSize * lineHeight - ret.start, winHeight * lineSize])
+    ret.winstart = max([(info.topline - 1) * lineHeight - ret.start, 0])
+    ret.winend = min([info.botline * lineHeight - ret.start, winHeight])
     return ret
   enddef
 
@@ -308,24 +310,31 @@ export class Minimap
     this._UpdatePopup()
   enddef
 
-  def _HighlightWindow(data: blob, winStart: number, winEnd: number)
+  def HighlightLines(start: number, end: number, color: dict<blob>)
+    const lineSize = this.width * NUM_CHANNELS
+    const startIdx = start * lineSize
+    const endIdx = end * lineSize
+    for i in range(startIdx, min([endIdx - NUM_CHANNELS, len(_drawingImg) - NUM_CHANNELS]), NUM_CHANNELS)
+      if _refImg->slice(i, i + NUM_CHANNELS) == this.baseColor.fg
+        _drawingImg[i : i + NUM_CHANNELS - 1] = color.fg
+      else
+        _drawingImg[i : i + NUM_CHANNELS - 1] = color.bg
+      endif
+    endfor
+  enddef
+
+  def _HighlightWindow(winStart: number, winEnd: number)
     if !!this.windowColor
-      for i in range(winStart, min([winEnd - NUM_CHANNELS, len(data) - NUM_CHANNELS]), NUM_CHANNELS)
-        if data->slice(i, i + NUM_CHANNELS) == this.baseColor.fg
-          data[i : i + NUM_CHANNELS - 1] = this.windowColor.fg
-        else
-          data[i : i + NUM_CHANNELS - 1] = this.windowColor.bg
-        endif
-      endfor
+      this.HighlightLines(winStart, winEnd, this.windowColor)
     endif
     if !!this.frameColor && this.frameWidth > 0
-      const topleft = (0, winStart / NUM_CHANNELS / this.width)
-      const botright = (this.width - 1, winEnd / NUM_CHANNELS / this.width - 1)
+      const topleft = (0, winStart)
+      const botright = (this.width - 1, winEnd - 1)
       const width = this.frameWidth - 1
-      this._DrawRect(data, topleft, (botright[0], topleft[1] + width), this.frameColor)
-      this._DrawRect(data, topleft, (topleft[0] + width, botright[1]), this.frameColor)
-      this._DrawRect(data, (botright[0] - width, topleft[1]), botright, this.frameColor)
-      this._DrawRect(data, (topleft[0], botright[1] - width), botright, this.frameColor)
+      this._DrawRect(_drawingImg, topleft, (botright[0], topleft[1] + width), this.frameColor)
+      this._DrawRect(_drawingImg, topleft, (topleft[0] + width, botright[1]), this.frameColor)
+      this._DrawRect(_drawingImg, (botright[0] - width, topleft[1]), botright, this.frameColor)
+      this._DrawRect(_drawingImg, (topleft[0], botright[1] - width), botright, this.frameColor)
     endif
   enddef
 
