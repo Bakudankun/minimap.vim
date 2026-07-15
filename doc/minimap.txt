@@ -98,6 +98,10 @@ colors			dict
 				visible area of minimap. If it's invalid, this
 				feature is disabled.
 
+		    fold	string or dict<string> (default: "")
+				Similar to "window" option, but used to
+				highlight the folds in the minimap.
+
 					*g:minimap_config.popup_options*
 popup_options		dict (default: #{zindex: 10})
 			Dictionary of additional options used when creating
