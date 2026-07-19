@@ -95,12 +95,12 @@ export class Minimap
   def _new(parent: number)
     this.parent = parent
 
-    this.baseColor = config.GetColorConfig('base')
+    this.baseColor = config.ParseColorConfig('base')
     if !config.Get('colors.window')->empty()
-      this.windowColor = config.GetColorConfig('window')
+      this.windowColor = config.ParseColorConfig('window')
     endif
     if !config.Get('colors.fold')->empty()
-      this.foldColor = config.GetColorConfig('fold')
+      this.foldColor = config.ParseColorConfig('fold')
     endif
 
     var frame: string = config.Get('colors.frame')
