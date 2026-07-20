@@ -100,10 +100,10 @@ def GetHighlightColor(highlight: string): dict<string>
     throw $"Unknown highlight group: {highlight}"
   endif
   final ret: dict<string> = {
-    fg: synID->synIDattr('fg#'),
-    bg: synID->synIDattr('bg#'),
+    fg: synID->synIDattr('fg#', 'gui'),
+    bg: synID->synIDattr('bg#', 'gui'),
   }
-  if synID->synIDattr('reverse')->str2nr()
+  if synID->synIDattr('reverse', 'gui')->str2nr()
     [ret.fg, ret.bg] = [ret.bg, ret.fg]
   endif
   return ret
