@@ -27,30 +27,30 @@ Requires Vim 9.2 or later with |+image| support.
 COMMANDS					*minimap-commands*
 
 :MinimapOpen							*:MinimapOpen*
-			Opens minimap for the current window.
+			Open the minimap in the current window.
 
 :MinimapClose							*:MinimapClose*
-			Closes minimap for the current window.
+			Close the minimap in the current window.
 
 
 ==============================================================================
 OPTIONS						*minimap-options*
 
-Every options are containd in *g:minimap_config* dictionary. The default value
-will be merged with that dictionary on loading this plugin.
+Every option is contained in *g:minimap_config* dictionary. Default values
+will be merged with your custom settings when the plugin loads.
 
 					*g:minimap_config.width*
 width			number (default: 10)
-			Width of the minimap by number of columns.
+			Width of the minimap (in columns).
 
 					*g:minimap_config.point_height*
 point_height		number (default: 1)
-			Height of the dots that indicates each character in
-			the minimap.
+			Height of the dots that indicate each character in the
+			minimap.
 
 					*g:minimap_config.point_width*
 point_width		number (default: 1)
-			Width of the dots that indicates each character in the
+			Width of the dots that indicate each character in the
 			minimap.
 
 					*g:minimap_config.line_space*
@@ -64,12 +64,13 @@ frame_width		number (default: 1)
 
 					*g:minimap_config.hide_time*
 hide_time		number (default: 1000)
-			When set to a number greater than 0, minimap will be
-			hidden after the specified time (in milliseconds) of
-			inactivity. It will be shown again occasionally. If
-			set to 0, minimap will not be hidden automatically.
-			You can call w:minimap.Hide() and w:minimap.Show() to
-			hide/show the minimap manually.
+			When set to a number greater than 0, the minimap will
+			automatically hide after the specified time (in
+			milliseconds) of inactivity. It will reappear when the
+			window is scrolled.
+			If set to 0, this feature is disabled. You can
+			manually call w:minimap.Hide() and w:minimap.Show() to
+			hide or show the minimap.
 
 					*g:minimap_config.colors*
 colors			dict
@@ -78,7 +79,7 @@ colors			dict
 			name from |v:colornames|.
 		    base	string or dict<string> (default: "Pmenu")
 				If it's a string, colors from that highlight
-				group will be used to draw minimap.
+				group will be used to draw the minimap.
 				If it's a dictionary, it should have color
 				codes for "bg" and "fg". Example: >
 				{'bg': '#333333', 'fg': '#cccccc'}
@@ -99,32 +100,33 @@ colors			dict
 				feature is disabled.
 
 		    fold	string or dict<string> (default: "")
-				Similar to "window" option, but used to
-				highlight the folds in the minimap.
+				Similar to the "window" option, but highlights
+				folds in the minimap.
 
 					*g:minimap_config.popup_options*
 popup_options		dict (default: #{zindex: 10})
 			Dictionary of additional options used when creating
-			|popup-image| for minimap.
+			the |popup-image| popup for the minimap.
 			See |popup_create-arguments| for details.
 
 					*g:minimap_config.cell_pixels*
 cell_pixels		list<number> (default: [])
 			List of two numbers that are cell width and height in
-			pixels. minimap.vim retrieves this value from
-			|getcellpixels()| automatically, but you can set this
-			manually if there is some problem.
+			pixels. minimap.vim automatically retrieves this value
+			from |getcellpixels()|, but you can set it manually if
+			needed.
 
 
 ==============================================================================
 MAYBE FAQ					*minimap-faq*
 
 ------------------------------------------------------------------------------
-Q:	How to open minimap automatically when opening a file?
+Q:	How to open the minimap automatically when opening a file?
 
-A:	This plugin does not provide features to open minimap automatically
-	because there are many situations where you don't want that. You can
-	make your own |autocommands| to open minimap automatically like:
+A:	This plugin does not provide a feature to open the minimap
+	automatically because there can be many situations where you don't
+	want it. You can make your own |autocommands| to open the minimap
+	automatically, like:
 >
 	autocmd VimEnter,WinNew * MinimapOpen
 <
