@@ -17,8 +17,8 @@ MAYBE FAQ					|minimap-faq|
 ==============================================================================
 INTRODUCTION					*minimap*
 
-minimap.vim is a plugin that adds minimap to Vim by using Vim 9.2's
-|popup-image| feature.
+minimap.vim is a plugin that adds the minimap and the scrollbar to Vim by
+using Vim 9.2's |popup-image| feature.
 
 Requires Vim 9.2 or later with |+image| support.
 
@@ -62,6 +62,11 @@ frame_width		number (default: 1)
 			Width of the frame to indicate the visible area of
 			minimap. If set to 0, this feature is disabled.
 
+					*g:minimap_config.sbar_width*
+sbar_width		number (default: 4)
+			Width of the scrollbar. If set to 0, the scrollbar is
+			disabled.
+
 					*g:minimap_config.hide_time*
 hide_time		number (default: 1000)
 			When set to a number greater than 0, the minimap will
@@ -75,7 +80,7 @@ hide_time		number (default: 1000)
 					*g:minimap_config.colors*
 colors			dict
 			Dictionary of colors for minimap. Each "color code"
-			can be string of "#rrggbb", "#rrggbbaa" or color's
+			can be string of "#rrggbb", "#rrggbbaa" or a color
 			name from |v:colornames|.
 		    base	string or dict<string> (default: "Pmenu")
 				If it's a string, colors from that highlight
@@ -98,6 +103,17 @@ colors			dict
 				Color code for the frame to indicate the
 				visible area of minimap. If it's invalid, this
 				feature is disabled.
+
+		    sbar	string
+				(default: guibg of |hl-PmenuSbar| if available)
+				Color code for the scrollbar. If it's invalid,
+				the thumb of the scrollbar floats over the
+				minimap.
+
+		    thumb	string
+				(default: guibg of |hl-PmenuThumb| if available)
+				Color code for the thumb of the scrollbar. If
+				it's invalid, the scrollbar is disabled.
 
 		    fold	string or dict<string> (default: "")
 				Similar to the "window" option, but highlights
