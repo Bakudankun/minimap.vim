@@ -84,6 +84,21 @@ export def ParseColorConfig(kind: string): dict<blob>
 enddef
 
 
+export def ParseSingleColorConfig(kind: string): blob
+  var config: string = Get('colors.' .. kind)
+  if config[0] != '#'
+    config = v:colornames->get(config->tolower(), config)
+  endif
+  if config !~ '^#\%(\x\x\)\{3,4}$'
+    throw $'Invalid configuration for {kind} color: {config}'
+  endif
+  if len(config) < 9
+    config ..= 'ff'
+  endif
+  return eval('0z' .. config[1 :])
+enddef
+
+
 def Init()
   if !exists('g:minimap_config')
     g:minimap_config = {}

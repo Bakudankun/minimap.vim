@@ -102,21 +102,7 @@ export class Minimap
     if !config.Get('colors.fold')->empty()
       this.foldColor = config.ParseColorConfig('fold')
     endif
-
-    var frame: string = config.Get('colors.frame')
-    if frame[0] != '#'
-      frame = v:colornames->get(frame->tolower(), frame)
-      if frame[0] != '#'
-        throw $"Unknown color name for frame: \"{frame}\"\nYou may need to specify the colors in hex format."
-      endif
-    endif
-    if frame =~ '^#\x\{6}$'
-      frame ..= 'ff'
-    endif
-    if frame !~ '^#\x\{8}$'
-      throw $"Invalid frame color format: {frame}"
-    endif
-    this.frameColor = eval('0z' .. frame[1 :])
+    this.frameColor = config.ParseSingleColorConfig('frame')
 
     this.pointHeight = config.Get('point_height')
     this.pointWidth = config.Get('point_width')
