@@ -244,11 +244,12 @@ export class Minimap
     if len(color) != NUM_CHANNELS
       throw 'Length of color must be ' .. NUM_CHANNELS
     endif
+    const height = len(canvas) / NUM_CHANNELS / this.width
     const startX = max([start[0], 0])
     const startY = max([start[1], 0])
     const endX = min([end[0], this.width - 1])
-    const endY = min([end[1], this.height - 1])
-    if startX >= this.width || startY >= this.height || endX < 0 || endY < 0 ||
+    const endY = min([end[1], height - 1])
+    if startX >= this.width || startY >= height || endX < 0 || endY < 0 ||
         startX > endX || startY > endY
       return
     endif
