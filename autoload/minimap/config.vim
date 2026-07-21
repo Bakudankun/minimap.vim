@@ -9,11 +9,14 @@ final defaultConfig = {
     base: 'Pmenu',
     window: '',
     frame: '#ff0000',
+    sbar: '',
+    thumb: '',
     fold: '',
   },
   point_height: 1,
   point_width: 1,
   line_space: 1,
+  sbar_width: 4,
   frame_width: 1,
   popup_options: {
     zindex: 10
@@ -90,7 +93,7 @@ export def ParseSingleColorConfig(kind: string): blob
     config = v:colornames->get(config->tolower(), config)
   endif
   if config !~ '^#\%(\x\x\)\{3,4}$'
-    throw $'Invalid configuration for {kind} color: {config}'
+    return null_blob
   endif
   if len(config) < 9
     config ..= 'ff'
@@ -100,6 +103,9 @@ enddef
 
 
 def Init()
+  defaultConfig.colors.sbar = GetHighlightColor('PmenuSbar').bg
+  defaultConfig.colors.thumb = GetHighlightColor('PmenuThumb').bg
+
   if !exists('g:minimap_config')
     g:minimap_config = {}
   endif

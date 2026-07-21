@@ -16,10 +16,13 @@ export class Minimap
   const windowColor: dict<blob>
   const frameColor: blob
   const foldColor: dict<blob>
+  const sbarColor: blob
+  const thumbColor: blob
   const pointHeight: number
   const pointWidth: number
   const lineSpace: number
   const frameWidth: number
+  const sbarWidth: number
   static const NUM_CHANNELS = 4
   static var _drawingImg: blob
   static var _refImg: blob
@@ -103,11 +106,14 @@ export class Minimap
       this.foldColor = config.ParseColorConfig('fold')
     endif
     this.frameColor = config.ParseSingleColorConfig('frame')
+    this.thumbColor = config.ParseSingleColorConfig('thumb')
+    this.sbarColor = config.ParseSingleColorConfig('sbar')
 
     this.pointHeight = config.Get('point_height')
     this.pointWidth = config.Get('point_width')
     this.lineSpace = config.Get('line_space')
     this.frameWidth = config.Get('frame_width')
+    this.sbarWidth = config.Get('sbar_width')
     this.winid = this._CreatePopup()
     this._DrawAllLines()
     this._MakeListener()
@@ -156,6 +162,9 @@ export class Minimap
     endif
     if !!this.frameColor && this.frameWidth > 0
       this._HighlightFrame()
+    endif
+    if !!this.thumbColor && this.sbarWidth > 0
+      this._HighlightSbar()
     endif
 
     const height = len(_drawingImg) / lineSize
@@ -369,12 +378,30 @@ export class Minimap
     const winStart: number = max([(wininfo.topline - 1) * lineHeight - cropInfo.start, 0])
     const winEnd: number = min([wininfo.botline * lineHeight - cropInfo.start, cropInfo.winHeight])
     const topleft = (0, winStart)
-    const botright = (this.width - 1, winEnd - 1)
+    var botright = (this.width - 1, winEnd - 1)
+    if !!this.thumbColor && this.sbarWidth > 0 && !!this.sbarColor
+      botright = (botright[0] - this.sbarWidth, botright[1])
+    endif
     const width = this.frameWidth - 1
     this._DrawRect(_drawingImg, topleft, (botright[0], topleft[1] + width), this.frameColor)
     this._DrawRect(_drawingImg, topleft, (topleft[0] + width, botright[1]), this.frameColor)
     this._DrawRect(_drawingImg, (botright[0] - width, topleft[1]), botright, this.frameColor)
     this._DrawRect(_drawingImg, (topleft[0], botright[1] - width), botright, this.frameColor)
+  enddef
+
+  def _HighlightSbar()
+    const cropInfo = _currentCropInfo
+    const wininfo: dict<any> = cropInfo.wininfo
+    const imgHeight = len(_drawingImg) / this.width / NUM_CHANNELS
+    const topleft = (this.width - this.sbarWidth, 0)
+    const botright = (this.width - 1, imgHeight - 1)
+    const bufHeight = line('$', wininfo.winid)
+    const thumbTop = imgHeight * (wininfo.topline - 1) / bufHeight
+    const thumbBot = imgHeight * wininfo.botline / bufHeight - 1
+    if !!this.sbarColor
+      this._DrawRect(_drawingImg, topleft, botright, this.sbarColor)
+    endif
+    this._DrawRect(_drawingImg, (topleft[0], thumbTop), (botright[0], thumbBot), this.thumbColor)
   enddef
 
   def _Delete()
