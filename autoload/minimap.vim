@@ -184,9 +184,18 @@ export class Minimap
     const pos = this._DesiredPos()
     const cropInfo = this._CalcCropInfo()
     const lineSize = this.width * NUM_CHANNELS
+    const height = cropInfo.end - cropInfo.start
     _currentCropInfo = cropInfo
     _refImg = this.canvas->slice(cropInfo.start * lineSize, cropInfo.end * lineSize)
     _drawingImg = copy(_refImg)
+
+    g:minimap_draw_info = {
+      minimap: this,
+      crop_info: cropInfo,
+      height: height,
+      num_channels: NUM_CHANNELS,
+      img: _drawingImg,
+    }
 
     if !!this.windowColor
       this._HighlightWindow()
@@ -194,6 +203,9 @@ export class Minimap
     if !!this.foldColor
       this._HighlightFolds()
     endif
+
+    util.DoAutocmd('Draw')
+
     if !!this.frameColor && this.frameWidth > 0
       this._HighlightFrame()
     endif
@@ -201,15 +213,6 @@ export class Minimap
       this._HighlightSbar()
     endif
 
-    const height = len(_drawingImg) / lineSize
-
-    g:minimap_draw_info = {
-      minimap: this,
-      height: height,
-      num_channels: NUM_CHANNELS,
-      img: _drawingImg,
-    }
-    util.DoAutocmd('Draw')
     unlet g:minimap_draw_info
 
     popup_setoptions(this.winid, {
