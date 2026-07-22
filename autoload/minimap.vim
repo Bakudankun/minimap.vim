@@ -95,6 +95,40 @@ export class Minimap
     this.Close()
   enddef
 
+  def HighlightLines(start: number, end: number, color: dict<blob>)
+    const cropInfo = _currentCropInfo
+    const lineHeight: number = this.pointHeight + this.lineSpace
+    const lineSize = this.width * NUM_CHANNELS
+    const startIdx: number = max([(start - 1) * lineHeight - cropInfo.start, 0]) * lineSize
+    const endIdx: number = min([end * lineHeight - cropInfo.start, cropInfo.winHeight]) * lineSize
+
+    if startIdx >= len(_drawingImg) || endIdx <= 0
+      return
+    endif
+
+    for i in range(startIdx, min([endIdx - NUM_CHANNELS, len(_drawingImg) - NUM_CHANNELS]), NUM_CHANNELS)
+      if _refImg->slice(i, i + NUM_CHANNELS) == this.baseColor.fg
+        _drawingImg[i : i + NUM_CHANNELS - 1] = color.fg
+      else
+        _drawingImg[i : i + NUM_CHANNELS - 1] = color.bg
+      endif
+    endfor
+  enddef
+
+  def DrawUnderline(line: number, color: blob)
+    const cropInfo = _currentCropInfo
+    const lineHeight: number = this.pointHeight + this.lineSpace
+    const lineSize = this.width * NUM_CHANNELS
+    const startIdx: number = ((line - 1) * lineHeight + this.pointHeight - cropInfo.start) * lineSize
+    const endIdx: number = startIdx + lineSize
+
+    if startIdx >= len(_drawingImg) || endIdx <= 0
+      return
+    endif
+
+    _drawingImg[startIdx : endIdx - 1] = repeat(color, this.width)
+  enddef
+
   def _new(parent: number)
     this.parent = parent
 
@@ -327,26 +361,6 @@ export class Minimap
     this.height = len(this.canvas) / NUM_CHANNELS / this.width
 
     this._UpdatePopup()
-  enddef
-
-  def HighlightLines(start: number, end: number, color: dict<blob>)
-    const cropInfo = _currentCropInfo
-    const lineHeight: number = this.pointHeight + this.lineSpace
-    const lineSize = this.width * NUM_CHANNELS
-    const startIdx: number = max([(start - 1) * lineHeight - cropInfo.start, 0]) * lineSize
-    const endIdx: number = min([end * lineHeight - cropInfo.start, cropInfo.winHeight]) * lineSize
-
-    if startIdx >= len(_drawingImg) || endIdx <= 0
-      return
-    endif
-
-    for i in range(startIdx, min([endIdx - NUM_CHANNELS, len(_drawingImg) - NUM_CHANNELS]), NUM_CHANNELS)
-      if _refImg->slice(i, i + NUM_CHANNELS) == this.baseColor.fg
-        _drawingImg[i : i + NUM_CHANNELS - 1] = color.fg
-      else
-        _drawingImg[i : i + NUM_CHANNELS - 1] = color.bg
-      endif
-    endfor
   enddef
 
   def _HighlightWindow()
