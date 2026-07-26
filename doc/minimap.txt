@@ -67,6 +67,11 @@ sbar_width		number (default: 4)
 			Width of the scrollbar. If set to 0, the scrollbar is
 			disabled.
 
+					*g:minimap_config.sign_width*
+sign_width		number (default: 2)
+			Width of the sign indicator. If set to 0, this feature
+			is disabled.
+
 					*g:minimap_config.hide_time*
 hide_time		number (default: 1000)
 			When set to a number greater than 0, the minimap will
