@@ -43,4 +43,20 @@ export def WinCall(winid: number, Func: func): any
 enddef
 
 
+export def GetHighlightColor(highlight: string): dict<string>
+  const synID = hlID(highlight)->synIDtrans()
+  if synID == 0
+    throw $"Unknown highlight group: {highlight}"
+  endif
+  final ret: dict<string> = {
+    fg: synID->synIDattr('fg#', 'gui'),
+    bg: synID->synIDattr('bg#', 'gui'),
+  }
+  if synID->synIDattr('reverse', 'gui')->str2nr()
+    [ret.fg, ret.bg] = [ret.bg, ret.fg]
+  endif
+  return ret
+enddef
+
+
 # vim: et sw=2 sts=-1 cc=+1

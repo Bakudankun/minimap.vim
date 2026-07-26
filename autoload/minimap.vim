@@ -23,6 +23,7 @@ export class Minimap
   const lineSpace: number
   const frameWidth: number
   const sbarWidth: number
+  const signWidth: number
   static const NUM_CHANNELS = 4
   static var _drawingImg: blob
   static var _refImg: blob
@@ -99,19 +100,22 @@ export class Minimap
     const cropInfo = _currentCropInfo
     const lineHeight: number = this.pointHeight + this.lineSpace
     const lineSize = this.width * NUM_CHANNELS
-    const startIdx: number = max([(start - 1) * lineHeight - cropInfo.start, 0]) * lineSize
-    const endIdx: number = min([end * lineHeight - cropInfo.start, cropInfo.winHeight]) * lineSize
+    const imgHeight: number = cropInfo.end - cropInfo.start
+    const startY: number = max([(start - 1) * lineHeight - cropInfo.start, 0])
+    const endY: number = min([end * lineHeight - cropInfo.start, imgHeight])
 
-    if startIdx >= len(_drawingImg) || endIdx <= 0
+    if startY >= imgHeight || endY <= 0
       return
     endif
 
-    for i in range(startIdx, min([endIdx - NUM_CHANNELS, len(_drawingImg) - NUM_CHANNELS]), NUM_CHANNELS)
-      if _refImg->slice(i, i + NUM_CHANNELS) == this.baseColor.fg
-        _drawingImg[i : i + NUM_CHANNELS - 1] = color.fg
-      else
-        _drawingImg[i : i + NUM_CHANNELS - 1] = color.bg
-      endif
+    for line in range(startY, endY - 1)
+      for i in range(line * lineSize + this.signWidth * NUM_CHANNELS, (line + 1) * lineSize - NUM_CHANNELS, NUM_CHANNELS)
+        if _refImg->slice(i, i + NUM_CHANNELS) == this.baseColor.fg
+          _drawingImg[i : i + NUM_CHANNELS - 1] = color.fg
+        else
+          _drawingImg[i : i + NUM_CHANNELS - 1] = color.bg
+        endif
+      endfor
     endfor
   enddef
 
@@ -127,6 +131,16 @@ export class Minimap
     endif
 
     _drawingImg[startIdx : endIdx - 1] = repeat(color, this.width)
+  enddef
+
+  def DrawSign(start: number, end: number, color: blob)
+    const cropInfo = _currentCropInfo
+    const lineHeight: number = this.pointHeight + this.lineSpace
+    const lineSize = this.width * NUM_CHANNELS
+    const topleft: tuple<number, number> = (0, (start - 1) * lineHeight - cropInfo.start)
+    const botright: tuple<number, number> = (this.signWidth - 1, (end * lineHeight) - cropInfo.start - 1)
+
+    this._DrawRect(_drawingImg, topleft, botright, color)
   enddef
 
   def _new(parent: number)
@@ -148,6 +162,7 @@ export class Minimap
     this.lineSpace = config.Get('line_space')
     this.frameWidth = config.Get('frame_width')
     this.sbarWidth = config.Get('sbar_width')
+    this.signWidth = config.Get('sign_width')
     this.winid = this._CreatePopup()
     this._DrawAllLines()
     this._MakeListener()
@@ -200,12 +215,12 @@ export class Minimap
     if !!this.thumbColor && this.sbarWidth > 0
       this._HighlightSbar()
     endif
-
-    const height = len(_drawingImg) / lineSize
+    if this.signWidth > 0
+      this._HighlightSigns()
+    endif
 
     g:minimap_draw_info = {
       minimap: this,
-      height: height,
       num_channels: NUM_CHANNELS,
       img: _drawingImg,
     }
@@ -218,7 +233,7 @@ export class Minimap
       image: {
         data: _drawingImg,
         width: this.width,
-        height: height,
+        height: cropInfo.end - cropInfo.start,
       }})
   enddef
 
@@ -266,8 +281,8 @@ export class Minimap
       for j in sS
         const strWidth = strdisplaywidth(j, col)
         if j[0] =~# '\S'
-          const rectStart = (col * this.pointWidth, (idx + start - 1) * lineHeight)
-          const rectEnd = ((col + strWidth) * this.pointWidth - 1, rectStart[1] + this.pointHeight - 1)
+          const rectStart = (col * this.pointWidth + this.signWidth, (idx + start - 1) * lineHeight)
+          const rectEnd = ((col + strWidth) * this.pointWidth + this.signWidth - 1, rectStart[1] + this.pointHeight - 1)
           this._DrawRect(this.canvas, rectStart, rectEnd, this.baseColor.fg)
         endif
         col += strWidth
@@ -416,6 +431,32 @@ export class Minimap
       this._DrawRect(_drawingImg, topleft, botright, this.sbarColor)
     endif
     this._DrawRect(_drawingImg, (topleft[0], thumbTop), (botright[0], thumbBot), this.thumbColor)
+  enddef
+
+  def _HighlightSigns()
+    const cropInfo = _currentCropInfo
+    const wininfo: dict<any> = cropInfo.wininfo
+    const signs: list<dict<any>> = sign_getplaced(wininfo.winid->winbufnr(), {group: '*'})[0].signs
+
+    for sign in signs
+      if sign.lnum < cropInfo.topline || sign.lnum > cropInfo.botline
+        continue
+      endif
+
+      const signhl: string = sign_getdefined(sign.name)[0].texthl
+      var signfg: string = util.GetHighlightColor(signhl).fg
+      if signfg == ''
+        signfg = util.GetHighlightColor('Normal').fg
+      endif
+      if signfg[0] != '#'
+        signfg = v:colornames->get(signfg->tolower(), signfg)
+      endif
+      if signfg !~ '^#\x\{6}$'
+        signfg = &background == 'light' ? '#000000' : '#ffffff'
+      endif
+      const signcolor: blob = eval('0z' .. signfg[1 :] .. 'ff')
+      this.DrawSign(sign.lnum, sign.lnum, signcolor)
+    endfor
   enddef
 
   def _Delete()
