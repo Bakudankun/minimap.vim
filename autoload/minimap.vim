@@ -101,8 +101,8 @@ export class Minimap
     const lineHeight: number = this.pointHeight + this.lineSpace
     const lineSize = this.width * NUM_CHANNELS
     const imgHeight: number = cropInfo.end - cropInfo.start
-    const startY: number = max([(start - 1) * lineHeight - cropInfo.start, 0])
-    const endY: number = min([end * lineHeight - cropInfo.start, imgHeight])
+    const startY: number = max(((start - 1) * lineHeight - cropInfo.start, 0))
+    const endY: number = min((end * lineHeight - cropInfo.start, imgHeight))
 
     if startY >= imgHeight || endY <= 0
       return
@@ -303,10 +303,10 @@ export class Minimap
       throw 'Length of color must be ' .. NUM_CHANNELS
     endif
     const height = len(canvas) / NUM_CHANNELS / this.width
-    const startX = max([start[0], 0])
-    const startY = max([start[1], 0])
-    const endX = min([end[0], this.width - 1])
-    const endY = min([end[1], height - 1])
+    const startX = max((start[0], 0))
+    const startY = max((start[1], 0))
+    const endX = min((end[0], this.width - 1))
+    const endY = min((end[1], height - 1))
     if startX >= this.width || startY >= height || endX < 0 || endY < 0 ||
         startX > endX || startY > endY
       return
@@ -336,7 +336,7 @@ export class Minimap
       ret.end = len(this.canvas) / lineSize
     else
       const midline = (wininfo.topline - 1 + wininfo.botline) * lineHeight / 2
-      ret.start = min([max([midline - winHeight / 2, 0]), this.height - winHeight])
+      ret.start = min((max((midline - winHeight / 2, 0)), this.height - winHeight))
       ret.end = ret.start + winHeight
     endif
 
@@ -404,8 +404,8 @@ export class Minimap
     const cropInfo = _currentCropInfo
     const wininfo: dict<any> = cropInfo.wininfo
     const lineHeight: number = this.pointHeight + this.lineSpace
-    const winStart: number = max([(wininfo.topline - 1) * lineHeight - cropInfo.start, 0])
-    const winEnd: number = min([wininfo.botline * lineHeight - cropInfo.start, cropInfo.winHeight])
+    const winStart: number = max(((wininfo.topline - 1) * lineHeight - cropInfo.start, 0))
+    const winEnd: number = min((wininfo.botline * lineHeight - cropInfo.start, cropInfo.winHeight))
     const topleft = (0, winStart)
     var botright = (this.width - 1, winEnd - 1)
     if !!this.thumbColor && this.sbarWidth > 0 && !!this.sbarColor

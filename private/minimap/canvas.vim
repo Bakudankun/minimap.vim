@@ -28,10 +28,10 @@ export class Canvas
     if len(color) != this.numChannels
       throw 'Length of color must be ' .. this.numChannels
     endif
-    const startX = max([start[0], 0])
-    const startY = max([start[1], 0])
-    const endX = min([end[0], this.width - 1])
-    const endY = min([end[1], this.height - 1])
+    const startX = max((start[0], 0))
+    const startY = max((start[1], 0))
+    const endX = min((end[0], this.width - 1))
+    const endY = min((end[1], this.height - 1))
     if startX >= this.width || startY >= this.height || endX < 0 || endY < 0 ||
         startX > endX || startY > endY
       return
